@@ -1,8 +1,8 @@
 # ETF constituent betas
 
 `etf_constituent_betas.py` reads the equity rows from an iShares-style holdings
-CSV, downloads adjusted daily closes with `C:\python\code\yfinance_util.py`, and
-computes stock betas against one or more ETFs.
+CSV, downloads adjusted daily closes from Yahoo Finance, and computes stock
+betas against one or more ETFs.
 
 ```powershell
 python .\etf_constituent_betas.py .\TOPT_holdings.csv --etfs VOO XLE --days 252 --multiple
