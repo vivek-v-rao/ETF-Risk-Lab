@@ -82,6 +82,59 @@ print beta and requested volatility statistics separately for every sector. It
 also writes `<holdings>_sector_statistics.csv` in long format; values in that CSV
 retain their source units (betas or annualized decimal volatility).
 
+## Current-holdings-implied ETF risk
+
+`etf_holdings_risk.py` estimates the volatility, covariance, and correlation of
+one or more ETFs from their current constituent weights. Supply one ETF symbol
+for each holdings file, in the same order:
+
+```powershell
+python .\etf_holdings_risk.py `
+  .\IVV_holdings.csv .\TOPT_holdings.csv `
+  --etfs IVV TOPT --days 63 126 252 `
+  --covariance sample ledoit-wolf --sector
+```
+
+For each window and constituent covariance estimator, the program forms one
+covariance matrix over the union of eligible stocks and calculates
+`W' * stock_covariance * W`. This produces a coherent current-holdings-implied
+ETF covariance matrix. It compares that matrix with the ordinary sample
+covariance of historical ETF returns over exactly the same common dates. The
+historical estimator remains `sample` even when `ledoit-wolf` is selected for
+the much larger constituent matrix.
+
+Sample covariance is the default and is valid for this calculation even when
+there are more stocks than observations because no matrix inverse is required.
+Ledoit-Wolf provides an alternative shrinkage-based risk forecast. Console
+covariances are annualized and displayed in percent squared; covariance CSVs
+contain annualized decimal-squared values. Every difference is defined as
+implied minus historical.
+
+By default, eligible positive equity holdings are normalized to 100%. Use
+`--weight-treatment as-reported` to preserve their reported weights and
+implicitly treat omitted weight as zero-volatility cash. The summary always
+reports total source equity weight, included source weight, and the fraction of
+source weight retained, making missing securities and non-equity exposures
+visible.
+
+The combined adjusted-close cache includes the union of constituents and the
+ETF symbols. Separate constituent and ETF price files are also saved. Outputs
+include:
+
+- `<merged-holdings>_holdings_risk_summary.csv`
+- `<holdings>_holding_risk_contributions.csv`
+- `<holdings>_sector_risk_contributions.csv` with `--sector`
+- `<merged-holdings>_<window>d_<method>_implied_annualized_covariance.csv`
+- corresponding historical and covariance-difference matrices
+- corresponding implied, historical, and correlation-difference matrices
+
+Constituent risk files contain calculation weights, marginal and component
+annualized volatility, and fractional variance contributions. Fractional
+contributions sum to one but individual values can be negative when a holding
+provides diversification. The calculation is a risk estimate for today's
+weights under a recent covariance regime, not a reconstruction of the ETF's
+historical holdings.
+
 ## Minimum-variance portfolios
 
 `minimum_variance_portfolio.py` reads the saved adjusted-close data and constructs
